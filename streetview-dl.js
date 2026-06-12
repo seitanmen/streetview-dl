@@ -244,18 +244,35 @@ async function downloadTiles(panoId, zoom, concurrency) {
 // ---------------------------------------------------------------------------
 
 export async function buildPanorama(tiles, cols, rows) {
-  // Determine tile size from the first decoded tile (Google uses 512 px).
-  const first = await sharp(tiles[0].buf).metadata();
-  const tileW = first.width;
-  const tileH = first.height;
-  const width = cols * tileW;
-  const height = rows * tileH;
+  // Tiles are NOT guaranteed to all be the same size. At the highest zoom some
+  // panoramas return full 512 px tiles only in the centre and half-resolution
+  // 256 px tiles around the edges. Every tile still occupies one fixed grid
+  // cell, so we must size the cell to the LARGEST tile seen and scale any
+  // smaller tile up to fill its cell — otherwise smaller tiles are placed on a
+  // too-small step and the whole mosaic shifts/overlaps.
+  const metas = await Promise.all(
+    tiles.map((t) => sharp(t.buf).metadata())
+  );
+  let cellW = 0;
+  let cellH = 0;
+  for (const m of metas) {
+    if (m.width > cellW) cellW = m.width;
+    if (m.height > cellH) cellH = m.height;
+  }
+  const width = cols * cellW;
+  const height = rows * cellH;
 
-  const composites = tiles.map((t) => ({
-    input: t.buf,
-    left: t.x * tileW,
-    top: t.y * tileH,
-  }));
+  const composites = await Promise.all(
+    tiles.map(async (t, i) => {
+      let input = t.buf;
+      if (metas[i].width !== cellW || metas[i].height !== cellH) {
+        input = await sharp(t.buf)
+          .resize(cellW, cellH, { fit: "fill" })
+          .toBuffer();
+      }
+      return { input, left: t.x * cellW, top: t.y * cellH };
+    })
+  );
 
   // Build on a black canvas, output as a high quality JPEG buffer.
   const buf = await sharp({
