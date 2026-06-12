@@ -131,19 +131,11 @@
 
     <div class="row">
       <div>
-        <label for="zoom">画質 (zoom)</label>
+        <label for="zoom">画質（出力サイズは画質に応じて決まります）</label>
         <select id="zoom">
-          <option value="3">低 (zoom 3 / 約4096px・最速)</option>
-          <option value="4">中 (zoom 4 / 約8192px)</option>
-          <option value="5" selected>高 (zoom 5 / 最大16384px・低速)</option>
-        </select>
-      </div>
-      <div>
-        <label for="size">出力サイズ</label>
-        <select id="size">
-          <option value="full" selected>フル解像度 (stl)</option>
-          <option value="medium">8192px 幅 (stm)</option>
-          <option value="small">1300px 幅 (sts)</option>
+          <option value="3">低 — zoom 3（4096×2048・最速）</option>
+          <option value="4">中 — zoom 4（8192×4096）</option>
+          <option value="5" selected>高 — zoom 5（16384×8192・低速）</option>
         </select>
       </div>
     </div>
@@ -240,10 +232,11 @@
       const r = await fetch("/api/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        // Output size follows the chosen zoom (always the full panorama at
+        // that zoom); there is no separate size option.
         body: JSON.stringify({
           url,
           zoom: parseInt($("zoom").value, 10),
-          size: $("size").value,
         }),
       });
       data = await r.json();
