@@ -1,0 +1,29 @@
+{
+  "name": "streetview-dl",
+  "version": "2.0.0",
+  "description": "Cross-platform Node.js downloader for Google Street View equirectangular 360 panoramic images. Pure npm dependencies, no aria2/ImageMagick/exiftool required.",
+  "type": "module",
+  "bin": {
+    "streetview-dl": "streetview-dl.js"
+  },
+  "main": "streetview-dl.js",
+  "scripts": {
+    "start": "node streetview-dl.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "google-street-view",
+    "streetview",
+    "panorama",
+    "equirectangular",
+    "360",
+    "downloader",
+    "gpano"
+  ],
+  "license": "Unlicense",
+  "dependencies": {
+    "sharp": "^0.33.5"
+  }
+}

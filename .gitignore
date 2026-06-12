@@ -1,0 +1,13 @@
+node_modules/
+package-lock.json
+
+# Downloaded panoramas & intermediate tiles
+stl-*.jpg
+stm-*.jpg
+sts-*.jpg
+tiles-*/
+tmp-*
+
+# OS / editor
+Thumbs.db
+.DS_Store
