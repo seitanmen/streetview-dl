@@ -66,6 +66,11 @@ Or pass the raw panorama id:
 node streetview-dl.js r3vUp9U2ss5fwoq1Roxizw
 ```
 
+> **Note:** the panorama id above is only an example and Google has since
+> removed it, so it will report *"No tiles downloaded."* Grab a current URL from
+> [Google Maps](https://maps.google.com) (see below) — panorama ids are not
+> permanent and disappear when Street View imagery is updated.
+
 ### Options
 
 | Option                  | Description                                  | Default     |
@@ -83,7 +88,19 @@ node streetview-dl.js r3vUp9U2ss5fwoq1Roxizw --zoom 5 --out .\panos --concurrenc
 ## How to find a panorama URL
 
 Open [Google Maps](https://maps.google.com), drag the yellow pegman onto a street to
-enter Street View, then copy the URL from your browser's address bar.
+enter Street View, then copy the URL from your browser's address bar. The URL contains
+the panorama id in the `!1s<id>!` segment, which is all this tool needs.
+
+## Troubleshooting
+
+- **"No tiles downloaded. The panorama id may be invalid or unavailable."**
+  The panorama id could not be served by Google. The id is wrong, has expired, or
+  the imagery was removed/updated — fetch a fresh URL from Google Maps.
+- **A lower zoom downloads but the highest zoom fails.**
+  Not every panorama is published at every zoom level. Retry with a lower `--zoom`
+  (e.g. `--zoom 4` or `--zoom 3`).
+- **Downloads are slow or some tiles fail intermittently.**
+  Lower `--concurrency` to avoid rate-limiting (e.g. `--concurrency 4`).
 
 ## Viewers
 
