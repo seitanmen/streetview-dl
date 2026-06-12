@@ -53,8 +53,14 @@ You provide the **panorama id** yourself, via the `--panoid` option:
 node streetview-dl.js --panoid <PANO_ID>
 ```
 
-If no panorama id is given — or the id is wrong, expired, or its imagery was
-removed — Google serves no tiles and the run ends with:
+If you don't supply any panorama id, the tool prints its help and exits with:
+
+```
+No panorama id given. Pass --panoid <id> (or a URL/id argument).
+```
+
+If an id *is* supplied but it's wrong, expired, or its imagery was removed,
+Google serves no tiles and the run ends with:
 
 ```
 Error: No tiles downloaded. The panorama id may be invalid or unavailable.
