@@ -34,6 +34,7 @@ function parseArgs(argv) {
     outDir: process.cwd(),
     concurrency: DEFAULT_CONCURRENCY,
     keepTiles: false,
+    panoId: null,
   };
   const rest = [];
   for (let i = 0; i < argv.length; i++) {
@@ -51,6 +52,12 @@ function parseArgs(argv) {
       case "-c":
       case "--concurrency":
         opts.concurrency = parseInt(argv[++i], 10);
+        break;
+      case "-p":
+      case "--panoid":
+      case "--pano-id":
+      case "--id":
+        opts.panoId = argv[++i];
         break;
       case "--keep-tiles":
         opts.keepTiles = true;
@@ -71,13 +78,15 @@ function printHelp() {
   console.log(`streetview-dl - download Google Street View 360 equirectangular panoramas
 
 Usage:
+  streetview-dl --panoid <id> [options]
   streetview-dl <url-or-panoid> [options]
 
-Arguments:
-  url-or-panoid          A Google Maps Street View URL (quote it on a shell) or a
-                         raw panorama id.
+You must supply a panorama id, either with the --panoid option or as a
+positional argument (a Street View URL or a raw id). Without a valid panorama
+id, no tiles can be fetched and the run ends with "No tiles downloaded".
 
 Options:
+  -p, --panoid <id>      Panorama id to download (required if not given positionally)
   -z, --zoom <n>         Tile zoom level (0-5). Higher = more detail. Default: ${DEFAULT_ZOOM}
   -o, --out <dir>        Output directory. Default: current directory
   -c, --concurrency <n>  Parallel tile downloads. Default: ${DEFAULT_CONCURRENCY}
@@ -85,8 +94,9 @@ Options:
   -h, --help             Show this help
 
 Examples:
-  streetview-dl "https://www.google.com/maps/@41.38,2.16,3a,75y,143h,92t/data=!3m6!1e1!3m4!1sr3vUp9U2ss5fwoq1Roxizw!2e0!7i16384!8i8192"
-  streetview-dl r3vUp9U2ss5fwoq1Roxizw --zoom 5 --out ./panos
+  streetview-dl --panoid <PANO_ID>
+  streetview-dl --panoid <PANO_ID> --zoom 5 --out ./panos
+  streetview-dl "<Street View URL>"
 
 Outputs (in the output directory):
   stl-<id>.jpg           Full resolution panorama
@@ -151,15 +161,21 @@ async function fetchTile(panoId, x, y, zoom) {
   for (let attempt = 1; attempt <= TILE_RETRIES; attempt++) {
     try {
       const res = await fetch(url);
-      if (res.status === 404) return null; // tile genuinely absent
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const buf = Buffer.from(await res.arrayBuffer());
-      if (buf.length === 0) return null;
-      return buf;
-    } catch (err) {
-      if (attempt === TILE_RETRIES) {
-        throw new Error(`tile (${x},${y}) failed: ${err.message}`);
+      if (res.ok) {
+        const buf = Buffer.from(await res.arrayBuffer());
+        return buf.length === 0 ? null : buf;
       }
+      // A 4xx (other than 429) means the tile is genuinely absent — an invalid
+      // or expired panorama id, or a coordinate past the panorama's edge.
+      // Treat it as missing instead of retrying, so a fully-invalid id ends as
+      // "No tiles downloaded" rather than a raw HTTP error.
+      if (res.status >= 400 && res.status < 500 && res.status !== 429) {
+        return null;
+      }
+      // 429 / 5xx are transient: fall through to retry.
+      throw new Error(`HTTP ${res.status}`);
+    } catch (err) {
+      if (attempt === TILE_RETRIES) return null; // give up on this single tile
       await delay(250 * attempt);
     }
   }
@@ -325,9 +341,15 @@ export function withPanoXmp(jpegBuf, width, height) {
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
 
-  if (opts.help || !opts.input) {
+  const hasInput = Boolean(opts.panoId || opts.input);
+  if (opts.help || !hasInput) {
     printHelp();
-    process.exit(opts.input ? 0 : 1);
+    if (!opts.help && !hasInput) {
+      console.error(
+        "\nNo panorama id given. Pass --panoid <id> (or a URL/id argument)."
+      );
+    }
+    process.exit(hasInput ? 0 : 1);
   }
 
   if (!Number.isInteger(opts.zoom) || opts.zoom < 0 || opts.zoom > 5) {
@@ -335,9 +357,12 @@ async function main() {
     process.exit(1);
   }
 
-  const panoId = extractPanoId(opts.input);
+  // The --panoid option takes precedence; otherwise extract from the argument.
+  const panoId = opts.panoId
+    ? extractPanoId(opts.panoId)
+    : extractPanoId(opts.input);
   if (!panoId || panoId.length < 10 || panoId.length > 64) {
-    console.error("Could not extract a valid panorama id from the input.");
+    console.error("Could not determine a valid panorama id.");
     process.exit(1);
   }
 
@@ -405,6 +430,9 @@ if (invokedDirectly) {
   main().catch((err) => {
     process.stdout.write("\n");
     console.error("Error:", err.message);
-    process.exit(1);
+    // Set the exit code and let the event loop drain naturally. Calling
+    // process.exit() here can abort while fetch/sharp native handles are still
+    // open, which trips a libuv assertion during teardown.
+    process.exitCode = 1;
   });
 }

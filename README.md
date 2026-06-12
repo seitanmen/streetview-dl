@@ -47,49 +47,58 @@ npm install -g .
 
 ## Usage
 
+You provide the **panorama id** yourself, via the `--panoid` option:
+
 ```cmd
-node streetview-dl.js "<url or panoid>"
+node streetview-dl.js --panoid <PANO_ID>
 ```
 
-**Wrap the URL in double quotes** (Street View URLs contain `!`, `&` and
-other characters the shell would otherwise interpret).
+If no panorama id is given — or the id is wrong, expired, or its imagery was
+removed — Google serves no tiles and the run ends with:
+
+```
+Error: No tiles downloaded. The panorama id may be invalid or unavailable.
+```
+
+So always pass a current panorama id (see [How to find a panorama id](#how-to-find-a-panorama-id) below).
 
 ### Examples
 
 ```cmd
-node streetview-dl.js "https://www.google.com/maps/@41.3881837,2.1698939,3a,75y,143.45h,92.72t/data=!3m6!1e1!3m4!1sr3vUp9U2ss5fwoq1Roxizw!2e0!7i16384!8i8192"
+node streetview-dl.js --panoid <PANO_ID>
+node streetview-dl.js --panoid <PANO_ID> --zoom 5 --out .\panos
 ```
 
-Or pass the raw panorama id:
+You can also pass a full Street View URL as a positional argument and the id is
+extracted from it. **Wrap the URL in double quotes** (Street View URLs
+contain `!`, `&` and other characters the shell would otherwise interpret):
 
 ```cmd
-node streetview-dl.js r3vUp9U2ss5fwoq1Roxizw
+node streetview-dl.js "<Street View URL>"
 ```
-
-> **Note:** the panorama id above is only an example and Google has since
-> removed it, so it will report *"No tiles downloaded."* Grab a current URL from
-> [Google Maps](https://maps.google.com) (see below) — panorama ids are not
-> permanent and disappear when Street View imagery is updated.
 
 ### Options
 
-| Option                  | Description                                  | Default     |
-| ----------------------- | -------------------------------------------- | ----------- |
-| `-z, --zoom <n>`        | Tile zoom level (0–5). Higher = more detail. | `5`         |
-| `-o, --out <dir>`       | Output directory.                            | current dir |
-| `-c, --concurrency <n>` | Parallel tile downloads.                     | `8`         |
-| `--keep-tiles`          | Keep the raw downloaded tiles (debug).       | off         |
-| `-h, --help`            | Show help.                                   |             |
+| Option                  | Description                                              | Default     |
+| ----------------------- | ------------------------------------------------------- | ----------- |
+| `-p, --panoid <id>`     | Panorama id to download (or pass a URL/id positionally). |            |
+| `-z, --zoom <n>`        | Tile zoom level (0–5). Higher = more detail.            | `5`         |
+| `-o, --out <dir>`       | Output directory.                                       | current dir |
+| `-c, --concurrency <n>` | Parallel tile downloads.                                | `8`         |
+| `--keep-tiles`          | Keep the raw downloaded tiles (debug).                  | off         |
+| `-h, --help`            | Show help.                                              |             |
 
 ```cmd
-node streetview-dl.js r3vUp9U2ss5fwoq1Roxizw --zoom 5 --out .\panos --concurrency 12
+node streetview-dl.js --panoid <PANO_ID> --zoom 5 --out .\panos --concurrency 12
 ```
 
-## How to find a panorama URL
+## How to find a panorama id
 
 Open [Google Maps](https://maps.google.com), drag the yellow pegman onto a street to
 enter Street View, then copy the URL from your browser's address bar. The URL contains
-the panorama id in the `!1s<id>!` segment, which is all this tool needs.
+the panorama id in the `!1s<id>!` segment — copy that id and pass it to `--panoid`.
+Panorama ids are not permanent: they change when Street View imagery is updated, so an
+old id may return no tiles.
 
 ## Troubleshooting
 
