@@ -1,14 +1,16 @@
 {
   "name": "streetview-dl",
   "version": "2.0.0",
-  "description": "Cross-platform Node.js downloader for Google Street View equirectangular 360 panoramic images. Pure npm dependencies, no aria2/ImageMagick/exiftool required.",
+  "description": "Cross-platform Node.js downloader for Google Street View equirectangular 360 panoramic images, with both a CLI and a browser web UI. Pure npm dependencies, no aria2/ImageMagick/exiftool required.",
   "type": "module",
   "bin": {
     "streetview-dl": "streetview-dl.js"
   },
-  "main": "streetview-dl.js",
+  "main": "lib/streetview.js",
   "scripts": {
-    "start": "node streetview-dl.js"
+    "start": "node server.js",
+    "serve": "node server.js",
+    "cli": "node streetview-dl.js"
   },
   "engines": {
     "node": ">=18"

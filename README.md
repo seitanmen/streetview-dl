@@ -1,11 +1,16 @@
-# streetview-dl (Node.js)
+# streetview-dl (Node.js — web UI + CLI)
 
 An open-source **Google Street View** equirectangular 360° panorama downloader.
 
 This is a **Node.js rewrite** of the original PHP [streetview-dl by fdd4s](https://github.com/fdd4s/streetview-dl),
-re-built to run **cross-platform** with **no external tools** —
-no `aria2`, no `ImageMagick`, no `exiftool`. Everything is done in Node with a single
-npm dependency (`sharp`).
+with **two ways to use it**:
+
+- a **browser web app** — paste a Street View URL and download the panorama, and
+- a **command-line tool** — for scripting and batch use.
+
+It runs cross-platform with **no external tools** — no `aria2`, no
+`ImageMagick`, no `exiftool`. Everything is done in Node with a single npm
+dependency (`sharp`).
 
 ## What it does
 
@@ -13,16 +18,16 @@ Given a Google Street View URL or panorama id, it:
 
 1. Downloads every panorama tile in parallel directly from Google.
 2. Stitches them into one full-resolution equirectangular image.
-3. Produces three JPEGs at decreasing sizes.
-4. Writes **GPano XMP metadata** into each output so 360° viewers recognise them as panoramas.
+3. Optionally resizes it.
+4. Writes **GPano XMP metadata** into the output so 360° viewers recognise it as a panorama.
 
-Outputs (in the output directory):
+Output sizes:
 
-| File           | Description                          |
-| -------------- | ------------------------------------ |
-| `stl-<id>.jpg` | Full resolution panorama             |
-| `stm-<id>.jpg` | 8192 px wide resize                  |
-| `sts-<id>.jpg` | 1300 px wide resize                  |
+| Size              | File           | Description              |
+| ----------------- | -------------- | ------------------------ |
+| Full              | `stl-<id>.jpg` | Full resolution panorama |
+| Medium            | `stm-<id>.jpg` | 8192 px wide             |
+| Small             | `sts-<id>.jpg` | 1300 px wide             |
 
 At the default zoom (5) a full panorama is up to 16384×8192 px.
 
@@ -39,13 +44,27 @@ cd streetview-dl
 npm install
 ```
 
-Optionally install it globally so `streetview-dl` is on your PATH:
+## Web app (browser)
+
+Start the local server:
 
 ```cmd
-npm install -g .
+npm start
 ```
 
-## Usage
+Then open **<http://127.0.0.1:8080>** in your browser, paste a Street View URL
+(or a raw panorama id), choose the zoom/output size, and click **ダウンロード生成**.
+A progress bar shows tile download → compositing → resize, and the finished JPEG
+downloads automatically.
+
+- The server runs **locally only** (binds to `127.0.0.1`). Change the port with
+  `PORT=3000 npm start`.
+- Tiles are fetched and stitched **server-side**: Google's tile endpoint can't be
+  read directly from a browser (CORS), so the Node process does the work and sends
+  back the finished image.
+- zoom 5 downloads 512 tiles and can take tens of seconds.
+
+## CLI
 
 You provide the **panorama id** yourself, via the `--panoid` option:
 
@@ -112,10 +131,10 @@ old id may return no tiles.
   The panorama id could not be served by Google. The id is wrong, has expired, or
   the imagery was removed/updated — fetch a fresh URL from Google Maps.
 - **A lower zoom downloads but the highest zoom fails.**
-  Not every panorama is published at every zoom level. Retry with a lower `--zoom`
-  (e.g. `--zoom 4` or `--zoom 3`).
+  Not every panorama is published at every zoom level. Retry with a lower zoom
+  (the **画質 (zoom)** selector in the web UI, or `--zoom 4` / `--zoom 3` on the CLI).
 - **Downloads are slow or some tiles fail intermittently.**
-  Lower `--concurrency` to avoid rate-limiting (e.g. `--concurrency 4`).
+  On the CLI, lower `--concurrency` to avoid rate-limiting (e.g. `--concurrency 4`).
 
 ## Viewers
 
@@ -126,15 +145,25 @@ old id may return no tiles.
 ## Differences from the original PHP version
 
 - Pure Node.js — no `aria2`, `ImageMagick` or `exiftool` to install.
-- Cross-platform.
+- A **browser web UI** in addition to the command-line tool.
+- Runs cross-platform.
 - Parallel tile downloading with retries built in.
 - 360° metadata is written as standard **GPano XMP** instead of via exiftool.
 - Tile grid is derived from the zoom level, so the **full** panorama is fetched
   (the original cropped to a fixed 26×13 tile region).
 
+## Project layout
+
+| File                | Purpose                                              |
+| ------------------- | ---------------------------------------------------- |
+| `lib/streetview.js` | Core pipeline (download, composite, resize, XMP).    |
+| `streetview-dl.js`  | CLI front-end.                                       |
+| `server.js`         | Web server (Node built-in `http`, no extra deps).    |
+| `public/index.html` | Browser UI.                                          |
+
 ## Credits
 
 - Original PHP version created by **fdd4s** — <https://github.com/fdd4s/streetview-dl>
-- Node.js rewrite maintained in this fork.
+- Node.js rewrite (web UI + CLI) maintained in this fork.
 
 All files are public domain — <https://unlicense.org/>
