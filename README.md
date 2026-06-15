@@ -58,6 +58,8 @@ resolution (zoom 3 → 4096×2048, zoom 4 → 8192×4096, zoom 5 → 16384×8192
 click **ダウンロード生成**. A progress bar shows tile download → compositing, and
 the finished JPEG downloads automatically.
 
+- The UI is available in **Japanese and English** — switch with the toggle in the
+  top-right (it remembers your choice and defaults to your browser language).
 - The server runs **locally only** (binds to `127.0.0.1`). Change the port with
   `PORT=3000 npm start`.
 - Tiles are fetched and stitched **server-side**: Google's tile endpoint can't be

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>streetview-dl — 360° パノラマ ダウンローダー</title>
+<title>streetview-dl</title>
 <style>
   :root {
     --bg: #0f1720;
@@ -29,6 +29,13 @@
     padding: 40px 16px;
   }
   .wrap { width: 100%; max-width: 640px; }
+  .topbar { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+  .lang { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .lang button {
+    background: #0e1620; color: var(--muted); border: 0; padding: 5px 12px;
+    font-size: 0.8rem; cursor: pointer; margin: 0; width: auto;
+  }
+  .lang button.active { background: var(--accent); color: #fff; }
   h1 { font-size: 1.5rem; margin: 0 0 4px; }
   .sub { color: var(--muted); margin: 0 0 24px; font-size: 0.9rem; }
   .card {
@@ -53,7 +60,7 @@
   textarea:focus, select:focus { outline: 2px solid var(--accent); border-color: transparent; }
   .row { display: flex; gap: 12px; margin-top: 16px; }
   .row > div { flex: 1; }
-  button {
+  #go {
     margin-top: 20px;
     width: 100%;
     background: var(--accent);
@@ -66,10 +73,9 @@
     cursor: pointer;
     transition: background 0.15s, opacity 0.15s;
   }
-  button:hover { background: #2f6fd6; }
-  button:disabled { opacity: 0.55; cursor: not-allowed; }
+  #go:hover { background: #2f6fd6; }
+  #go:disabled { opacity: 0.55; cursor: not-allowed; }
   .hint { font-size: 0.78rem; color: var(--muted); margin-top: 14px; line-height: 1.5; }
-  .hint code { background: #0e1620; padding: 1px 5px; border-radius: 5px; }
 
   #status { margin-top: 20px; display: none; }
   #status.show { display: block; }
@@ -122,46 +128,109 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>360° パノラマ ダウンローダー</h1>
-  <p class="sub">Google ストリートビューの URL を貼り付けて、等距円筒 360° 画像をダウンロード</p>
+  <div class="topbar">
+    <div class="lang" role="group" aria-label="language">
+      <button type="button" data-lang="ja">日本語</button>
+      <button type="button" data-lang="en">English</button>
+    </div>
+  </div>
+
+  <h1 data-i18n="h1"></h1>
+  <p class="sub" data-i18n="sub"></p>
 
   <div class="card">
-    <label for="url">ストリートビュー URL または パノラマ ID</label>
-    <textarea id="url" placeholder="https://www.google.com/maps/@.../data=...!1s<PANO_ID>!...  または raw な pano id"></textarea>
+    <label for="url" data-i18n="urlLabel"></label>
+    <textarea id="url" data-i18n-ph="urlPh"></textarea>
 
     <div class="row">
       <div>
-        <label for="zoom">画質（出力サイズは画質に応じて決まります）</label>
+        <label for="zoom" data-i18n="zoomLabel"></label>
         <select id="zoom">
-          <option value="3">低 — zoom 3（4096×2048・最速）</option>
-          <option value="4">中 — zoom 4（8192×4096）</option>
-          <option value="5" selected>高 — zoom 5（16384×8192・低速）</option>
+          <option value="3" data-i18n="zoomLow"></option>
+          <option value="4" data-i18n="zoomMid"></option>
+          <option value="5" selected data-i18n="zoomHigh"></option>
         </select>
       </div>
     </div>
 
-    <button id="go">ダウンロード生成</button>
+    <button id="go" data-i18n="go"></button>
 
     <div id="status">
       <div class="bar"><i id="bar"></i></div>
-      <div class="statusline"><span id="stage">準備中…</span><span id="pct">0%</span></div>
+      <div class="statusline"><span id="stage"></span><span id="pct">0%</span></div>
     </div>
 
     <div id="result" class="result"></div>
 
-    <p class="hint">
-      URL は Google マップで黄色いペグマンをストリートビューに置き、アドレスバーから取得します。
-      pano ID は URL の <code>!1s&lt;id&gt;!</code> 部分です。zoom 5 は 512 枚のタイル取得で数十秒かかります。
-    </p>
+    <p class="hint" data-i18n="hint"></p>
   </div>
 
   <footer>
-    出力は GPano XMP メタデータ付きで 360° ビューアが認識します ·
+    <span data-i18n="footer"></span>
     <a href="https://github.com/seitanmen/streetview-dl" target="_blank" rel="noopener">GitHub</a>
   </footer>
 </div>
 
 <script>
+  const I18N = {
+    ja: {
+      title: "streetview-dl — 360° パノラマ ダウンローダー",
+      h1: "360° パノラマ ダウンローダー",
+      sub: "Google ストリートビューの URL を貼り付けて、等距円筒 360° 画像をダウンロード",
+      urlLabel: "ストリートビュー URL または パノラマ ID",
+      urlPh: "https://www.google.com/maps/@.../data=...!1s<PANO_ID>!...  または raw な pano id",
+      zoomLabel: "画質（出力サイズは画質に応じて決まります）",
+      zoomLow: "低 — zoom 3（4096×2048・最速）",
+      zoomMid: "中 — zoom 4（8192×4096）",
+      zoomHigh: "高 — zoom 5（16384×8192・低速）",
+      go: "ダウンロード生成",
+      hint: "URL は Google マップで黄色いペグマンをストリートビューに置き、アドレスバーから取得します。pano ID は URL の !1s<id>! 部分です。zoom 5 は 512 枚のタイル取得で数十秒かかります。",
+      footer: "出力は GPano XMP メタデータ付きで 360° ビューアが認識します · ",
+      stages: {
+        queued: "キューに追加",
+        downloading: "タイルをダウンロード中…",
+        compositing: "画像を合成中…",
+        resizing: "リサイズ中…",
+        done: "完了",
+      },
+      needUrl: "URL または pano ID を入力してください。",
+      errorPrefix: "エラー: ",
+      doneTitle: "生成完了",
+      tilesInfo: (n, grid) => "タイル " + n + " 枚（グリッド " + grid + "）",
+      dlBtn: "⬇ JPEG をダウンロード",
+      reqFail: "リクエストに失敗しました: ",
+      disconnected: "サーバとの接続が切れました。",
+    },
+    en: {
+      title: "streetview-dl — 360° Panorama Downloader",
+      h1: "360° Panorama Downloader",
+      sub: "Paste a Google Street View URL to download the equirectangular 360° image",
+      urlLabel: "Street View URL or panorama ID",
+      urlPh: "https://www.google.com/maps/@.../data=...!1s<PANO_ID>!...  or a raw pano id",
+      zoomLabel: "Quality (output size follows the quality / zoom)",
+      zoomLow: "Low — zoom 3 (4096×2048, fastest)",
+      zoomMid: "Medium — zoom 4 (8192×4096)",
+      zoomHigh: "High — zoom 5 (16384×8192, slowest)",
+      go: "Generate & download",
+      hint: "Get the URL in Google Maps by dropping the yellow pegman into Street View and copying it from the address bar. The pano ID is the !1s<id>! part of the URL. zoom 5 downloads 512 tiles and can take tens of seconds.",
+      footer: "Outputs carry GPano XMP metadata so 360° viewers recognise them · ",
+      stages: {
+        queued: "Queued",
+        downloading: "Downloading tiles…",
+        compositing: "Compositing…",
+        resizing: "Resizing…",
+        done: "Done",
+      },
+      needUrl: "Please enter a URL or pano ID.",
+      errorPrefix: "Error: ",
+      doneTitle: "Done",
+      tilesInfo: (n, grid) => n + " tiles (grid " + grid + ")",
+      dlBtn: "⬇ Download JPEG",
+      reqFail: "Request failed: ",
+      disconnected: "Connection to the server was lost.",
+    },
+  };
+
   const $ = (id) => document.getElementById(id);
   const go = $("go");
   const statusBox = $("status");
@@ -170,46 +239,70 @@
   const pctEl = $("pct");
   const resultBox = $("result");
 
-  const STAGE_LABEL = {
-    queued: "キューに追加",
-    downloading: "タイルをダウンロード中…",
-    compositing: "画像を合成中…",
-    resizing: "リサイズ中…",
-    done: "完了",
-  };
-
+  // Remembered state so progress/result can be re-rendered on a language switch.
+  let lang = "ja";
   let es = null;
+  let current = null; // { stage, percent }
+  let lastDone = null; // done payload
+  let lastError = null; // raw error message
+
+  function t() { return I18N[lang]; }
+
+  function applyStaticI18n() {
+    const d = t();
+    document.documentElement.lang = lang;
+    document.title = d.title;
+    document.querySelectorAll("[data-i18n]").forEach((el) => {
+      const v = d[el.getAttribute("data-i18n")];
+      if (typeof v === "string") el.textContent = v;
+    });
+    document.querySelectorAll("[data-i18n-ph]").forEach((el) => {
+      const v = d[el.getAttribute("data-i18n-ph")];
+      if (typeof v === "string") el.setAttribute("placeholder", v);
+    });
+    document.querySelectorAll(".lang button").forEach((b) =>
+      b.classList.toggle("active", b.dataset.lang === lang)
+    );
+  }
+
+  function setLang(next) {
+    lang = I18N[next] ? next : "ja";
+    try { localStorage.setItem("svdl_lang", lang); } catch (e) {}
+    applyStaticI18n();
+    // Re-render dynamic pieces in the new language.
+    if (current) setProgress(current.stage, current.percent);
+    if (lastDone) showDone(lastDone);
+    else if (lastError !== null) showError(lastError);
+  }
 
   function setProgress(stage, percent) {
+    current = { stage, percent };
     statusBox.classList.add("show");
     bar.style.width = (percent || 0) + "%";
-    stageEl.textContent = STAGE_LABEL[stage] || stage || "";
+    stageEl.textContent = t().stages[stage] || stage || "";
     pctEl.textContent = (percent || 0) + "%";
   }
 
   function showError(msg) {
+    lastError = msg;
+    lastDone = null;
     resultBox.className = "result show error";
-    resultBox.innerHTML = "エラー: " + escapeHtml(msg);
+    resultBox.textContent = t().errorPrefix + msg;
     go.disabled = false;
   }
 
   function showDone(d) {
+    lastDone = d;
+    lastError = null;
     setProgress("done", 100);
+    const dict = t();
     resultBox.className = "result show";
     resultBox.innerHTML =
-      '<strong>生成完了</strong><br>' +
+      "<strong>" + escapeHtml(dict.doneTitle) + "</strong><br>" +
       '<span class="meta">' +
-      escapeHtml(d.filename) + " · " + d.width + "×" + d.height +
-      " · タイル " + d.tileCount + " 枚 (グリッド " + escapeHtml(d.grid) + ")</span><br>" +
-      '<a class="dl" href="' + d.downloadUrl + '">⬇ JPEG をダウンロード</a>';
-    // Auto-start the download.
-    const a = document.createElement("a");
-    a.href = d.downloadUrl;
-    a.download = d.filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    go.disabled = false;
+      escapeHtml(d.filename) + " · " + d.width + "×" + d.height + " · " +
+      escapeHtml(dict.tilesInfo(d.tileCount, d.grid)) + "</span><br>" +
+      '<a class="dl" href="' + d.downloadUrl + '">' + escapeHtml(dict.dlBtn) + "</a>";
   }
 
   function escapeHtml(s) {
@@ -220,10 +313,12 @@
 
   async function start() {
     const url = $("url").value.trim();
-    if (!url) { showError("URL または pano ID を入力してください。"); return; }
+    if (!url) { showError(t().needUrl); return; }
 
     go.disabled = true;
     resultBox.className = "result";
+    lastDone = null;
+    lastError = null;
     setProgress("queued", 0);
     if (es) { es.close(); es = null; }
 
@@ -232,17 +327,12 @@
       const r = await fetch("/api/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Output size follows the chosen zoom (always the full panorama at
-        // that zoom); there is no separate size option.
-        body: JSON.stringify({
-          url,
-          zoom: parseInt($("zoom").value, 10),
-        }),
+        body: JSON.stringify({ url, zoom: parseInt($("zoom").value, 10) }),
       });
       data = await r.json();
       if (!r.ok) { showError(data.error || ("HTTP " + r.status)); return; }
     } catch (e) {
-      showError("リクエストに失敗しました: " + e.message);
+      showError(t().reqFail + e.message);
       return;
     }
 
@@ -250,26 +340,48 @@
     es.onmessage = (ev) => {
       const msg = JSON.parse(ev.data);
       if (msg.type === "progress") setProgress(msg.stage, msg.percent);
-      else if (msg.type === "done") { es.close(); es = null; showDone(msg); }
-      else if (msg.type === "error") { es.close(); es = null; showError(msg.error); }
+      else if (msg.type === "done") {
+        es.close(); es = null;
+        showDone(msg);
+        // Auto-start the download.
+        const a = document.createElement("a");
+        a.href = msg.downloadUrl;
+        a.download = msg.filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        go.disabled = false;
+      } else if (msg.type === "error") {
+        es.close(); es = null;
+        showError(msg.error);
+      }
     };
     es.onerror = () => {
-      // The stream is closed by the server after a terminal event; only treat
-      // it as an error if we never reached a result.
       if (es) {
         es.close();
         es = null;
-        if (!resultBox.classList.contains("show")) {
-          showError("サーバとの接続が切れました。");
-        }
+        if (!resultBox.classList.contains("show")) showError(t().disconnected);
       }
     };
   }
 
+  // Initial language: saved choice > browser language > Japanese.
+  let initial = "ja";
+  try {
+    const saved = localStorage.getItem("svdl_lang");
+    if (saved && I18N[saved]) initial = saved;
+    else if (!(navigator.language || "").toLowerCase().startsWith("ja")) initial = "en";
+  } catch (e) {}
+
+  document.querySelectorAll(".lang button").forEach((b) =>
+    b.addEventListener("click", () => setLang(b.dataset.lang))
+  );
   go.addEventListener("click", start);
   $("url").addEventListener("keydown", (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === "Enter") start();
   });
+
+  setLang(initial);
 </script>
 </body>
 </html>
