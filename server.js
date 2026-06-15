@@ -31,7 +31,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const HOST = process.env.HOST || "127.0.0.1";
 const PORT = parseInt(process.env.PORT || "8080", 10);
-const JOB_TTL_MS = 10 * 60 * 1000; // keep finished results 10 minutes
+const JOB_TTL_MS = 10 * 60 * 1000; // backstop: drop never-downloaded results after 10 min
+const DOWNLOAD_GRACE_MS = parseInt(process.env.DOWNLOAD_GRACE_MS || "60000", 10); // drop image this long after it is downloaded
 const MAX_BODY = 64 * 1024; // request body cap
 
 // In-memory job registry. Fine for a local single-user app.
@@ -67,6 +68,14 @@ function broadcast(job, payload) {
 function closeListeners(job) {
   for (const res of job.listeners) res.end();
   job.listeners.clear();
+}
+
+// Remove a job and release its in-memory JPEG buffer so nothing lingers.
+function disposeJob(job) {
+  if (job.disposeTimer) clearTimeout(job.disposeTimer);
+  closeListeners(job);
+  if (job.file) job.file.buffer = null;
+  jobs.delete(job.id);
 }
 
 // Snapshot of the current job state for a freshly-connected SSE client.
@@ -123,10 +132,9 @@ async function runJob(job, { panoId, zoom, size }) {
 // Periodic cleanup of old jobs (frees the held JPEG buffers).
 setInterval(() => {
   const cutoff = Date.now() - JOB_TTL_MS;
-  for (const [id, job] of jobs) {
+  for (const [, job] of jobs) {
     if (job.createdAt < cutoff && job.status !== "running") {
-      closeListeners(job);
-      jobs.delete(id);
+      disposeJob(job);
     }
   }
 }, 60 * 1000).unref();
@@ -239,8 +247,17 @@ function handleFile(res, job) {
     "Content-Type": "image/jpeg",
     "Content-Length": buffer.length,
     "Content-Disposition": `attachment; filename="${safeName}"`,
+    "Cache-Control": "no-store",
   });
   res.end(buffer);
+
+  // Discard the in-memory image shortly after it has been delivered, so it does
+  // not linger on the server. A short grace allows a quick re-download.
+  res.once("finish", () => {
+    if (job.disposeTimer) return;
+    job.disposeTimer = setTimeout(() => disposeJob(job), DOWNLOAD_GRACE_MS);
+    if (job.disposeTimer.unref) job.disposeTimer.unref();
+  });
 }
 
 // ---------------------------------------------------------------------------

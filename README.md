@@ -62,6 +62,9 @@ the finished JPEG downloads automatically.
   top-right (it remembers your choice and defaults to your browser language).
 - The server runs **locally only** (binds to `127.0.0.1`). Change the port with
   `PORT=3000 npm start`.
+- Generated images are held **only in memory** — never written to disk — and are
+  discarded shortly after they are downloaded (and at the latest after 10 minutes).
+  Nothing persists once the server stops.
 - Tiles are fetched and stitched **server-side**: Google's tile endpoint can't be
   read directly from a browser (CORS), so the Node process does the work and sends
   back the finished image.
