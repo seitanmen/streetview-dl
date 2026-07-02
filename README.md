@@ -14,7 +14,7 @@ dependency (`sharp`).
 
 ## Screenshot
 
-![streetview-dl web UI](https://github.com/seitanmen/streetview-dl/releases/download/v2.0.0/web-ui.png)
+![streetview-dl web UI](https://github.com/seitanmen/streetview-dl/releases/download/v2.0.0/screenshot.png)
 
 ## What it does
 
