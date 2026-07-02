@@ -12,6 +12,10 @@ It runs cross-platform with **no external tools** — no `aria2`, no
 `ImageMagick`, no `exiftool`. Everything is done in Node with a single npm
 dependency (`sharp`).
 
+## Screenshot
+
+![streetview-dl web UI](https://github.com/seitanmen/streetview-dl/releases/download/v2.0.0/web-ui.png)
+
 ## What it does
 
 Given a Google Street View URL or panorama id, it:
