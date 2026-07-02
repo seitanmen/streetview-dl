@@ -59,8 +59,8 @@ npm start
 Then open **<http://127.0.0.1:8080>** in your browser, paste a Street View URL
 (or a raw panorama id), choose the **zoom** — which also sets the output
 resolution (zoom 3 → 4096×2048, zoom 4 → 8192×4096, zoom 5 → 16384×8192) — and
-click **ダウンロード生成**. A progress bar shows tile download → compositing, and
-the finished JPEG downloads automatically.
+click **ダウンロード生成**. A progress bar shows tile download → compositing, the
+finished JPEG downloads automatically, and a **preview of the result** is shown.
 
 - The UI is available in **Japanese and English** — switch with the toggle in the
   top-right (it remembers your choice and defaults to your browser language).

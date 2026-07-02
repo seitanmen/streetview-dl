@@ -121,6 +121,15 @@
     padding: 9px 14px;
     border-radius: 8px;
   }
+  .result img.preview {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 12px 0;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: #000;
+  }
   .meta { color: var(--muted); }
   footer { margin-top: 22px; text-align: center; color: var(--muted); font-size: 0.75rem; }
   footer a { color: var(--accent); text-decoration: none; }
@@ -302,6 +311,9 @@
       '<span class="meta">' +
       escapeHtml(d.filename) + " · " + d.width + "×" + d.height + " · " +
       escapeHtml(dict.tilesInfo(d.tileCount, d.grid)) + "</span><br>" +
+      (d.preview
+        ? '<img class="preview" src="' + d.preview + '" alt="preview">'
+        : "") +
       '<a class="dl" href="' + d.downloadUrl + '">' + escapeHtml(dict.dlBtn) + "</a>";
   }
 

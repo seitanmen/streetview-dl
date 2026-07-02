@@ -88,6 +88,7 @@ function stateEvent(job) {
       height: job.file.height,
       tileCount: job.file.tileCount,
       grid: job.file.grid,
+      preview: job.file.preview,
       downloadUrl: `/api/jobs/${job.id}/file`,
     };
   }
@@ -102,6 +103,7 @@ async function runJob(job, { panoId, zoom, size }) {
       panoId,
       zoom,
       size,
+      previewWidth: 640,
       onProgress: ({ stage, percent }) => {
         job.stage = stage;
         job.percent = percent;
@@ -115,6 +117,7 @@ async function runJob(job, { panoId, zoom, size }) {
       height: result.height,
       tileCount: result.tileCount,
       grid: `${result.gridCols}x${result.gridRows}`,
+      preview: result.preview,
     };
     job.status = "done";
     job.percent = 100;
