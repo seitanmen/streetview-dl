@@ -16,6 +16,10 @@ dependency (`sharp`).
 
 ![streetview-dl web UI](https://github.com/seitanmen/streetview-dl/releases/download/v2.0.0/screenshot.png)
 
+After generating, a preview of the panorama is shown in-page:
+
+![result with in-page preview](https://github.com/seitanmen/streetview-dl/releases/download/v2.0.0/preview.png)
+
 ## What it does
 
 Given a Google Street View URL or panorama id, it:
